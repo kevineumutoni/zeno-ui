@@ -93,7 +93,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-cover">
-      <div className="2xl:w-250 xl:w-150 xl:px-10 2xl:px-30 2xl:h-170 rounded-2xl flex flex-col items-center px-30 py-14 bg-black/0 border border-gray-600 shadow-lg shadow-gray-600">
+      <div className="2xl:w-250 xl:w-150 xl:px-10 2xl:px-30 2xl:h-190 rounded-2xl flex flex-col items-center px-30 py-14 bg-black/0 border border-gray-600 shadow-lg shadow-gray-600">
         <h2 className="2xl:text-[50px] lg:text-[30px] xl:text-[40px] lg:mb-10 sm:text-2xl xl:mb-10 font-bold text-cyan-200 2xl:mb-28 w-full text-left">Sign In</h2>
         <form onSubmit={handleSubmit} className="w-full flex flex-col gap-7">
           <div className="relative flex items-center border-b border-white/60">
@@ -130,6 +130,14 @@ export default function LoginPage() {
               )}
             </button>
           </div>
+          <div className="text-right w-full">
+            <span
+              className="text-cyan-200 text-base cursor-pointer text-[20px] hover:underline"
+              onClick={() => router.push('/reset')}
+            >
+              Forgot password?
+            </span>
+          </div>
           <div className="flex w-full justify-center">
             <button
               type="submit"
@@ -165,8 +173,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-
-
-
-

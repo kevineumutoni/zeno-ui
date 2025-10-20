@@ -1,5 +1,6 @@
+
 "use client";
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import UserMessage from "./components/UserMessageCard";
 import AgentMessage from "./components/AgentMessageCard";
 import FeedbackButtons from "../FeedbackButtons";
@@ -15,18 +16,30 @@ export default function ChatMessages({
   userId,
   runLimitError
 }: ChatMessagesProps) {
-  const bottomRef = useRef<HTMLDivElement | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const singlePrintRef = useRef<HTMLDivElement | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [runToDownload, setRunToDownload] = useState<RunLike | null>(null);
 
   const runs = useMemo(() => Array.isArray(runsProp) ? runsProp : [], [runsProp]);
 
-  useEffect(() => {
-    if (bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: "smooth" });
+  const isNearBottom = useCallback(() => {
+    if (!scrollContainerRef.current) return true;
+    const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+    return scrollHeight - scrollTop - clientHeight < 100;
+  }, []);
+
+  const scrollToBottom = useCallback(() => {
+    if (messagesEndRef.current && isNearBottom()) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [runs]);
+  }, [isNearBottom]);
+
+  useEffect(() => {
+    const timer = setTimeout(scrollToBottom, 50);
+    return () => clearTimeout(timer);
+  }, [runs, scrollToBottom]);
 
   const generatePDF = async (run: RunLike) => {
     setRunToDownload(run);
@@ -137,7 +150,10 @@ export default function ChatMessages({
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto p-6 space-y-6 w-full xl:max-w-3xl lg:max-w-2xl md:max-w-xl mx-auto scrollbar-hide">
+      <div
+        ref={scrollContainerRef}
+        className="flex-1 overflow-y-auto p-6 space-y-6 w-full xl:max-w-5xl lg:max-w-2xl md:max-w-xl mx-auto scrollbar-hide "
+      >
         {runs.length === 0 ? (
           <div className="text-center text-gray-400 py-10">No messages yet.</div>
         ) : (
@@ -158,30 +174,43 @@ export default function ChatMessages({
                 }
               />
 
-              {run.status === "pending" && <AgentMessage loading />}
+              {(run.status === "pending" || run.status === "running") && (
+                <AgentMessage
+                  loading
+                  progressMessages={
+                    Array.isArray(run.output_artifacts)
+                      ? run.output_artifacts
+                          .filter(a => a.artifact_type === "progress")
+                          .map(a => (a.data as { message?: string })?.message || "...")
+                      : []
+                  }
+                />
+              )}
 
               {run.status === "completed" && (
                 <>
-                  {run.final_output && <AgentMessage text={run.final_output} />}
+                  {run.final_output ? (
+                    <AgentMessage text={run.final_output} />
+                  ) : (
+                    (!Array.isArray(run.output_artifacts) ||
+                      run.output_artifacts.filter(a => a.artifact_type !== "progress").length === 0) && (
+                      <AgentMessage text="No response generated." />
+                    )
+                  )}
 
                   {Array.isArray(run.output_artifacts) &&
-                    run.output_artifacts.length > 0 &&
-                    run.output_artifacts.map((artifact, idx) => (
-                      <ChatArtifactRenderer
-                        key={artifact.id ?? idx}
-                        artifactType={artifact.artifact_type}
-                        artifactData={artifact.data}
-                        text={artifact.title}
-                      />
-                    ))}
+                    run.output_artifacts
+                      .filter(a => a.artifact_type !== "progress")
+                      .map((artifact, idx) => (
+                        <ChatArtifactRenderer
+                          key={artifact.id ?? idx}
+                          artifactType={artifact.artifact_type}
+                          artifactData={artifact.data}
+                          text={artifact.title}
+                        />
+                      ))}
 
-                  {!run.final_output &&
-                    (!Array.isArray(run.output_artifacts) ||
-                      run.output_artifacts.length === 0) && (
-                      <AgentMessage text="No response generated." />
-                    )}
-
-                  <div className="flex">
+                  <div className="flex mt-3">
                     <FeedbackButtons
                       userId={userId ?? 0}
                       textToCopy={run.final_output || ""}
@@ -210,19 +239,19 @@ export default function ChatMessages({
                   )}
                 </div>
               )}
-              <div ref={bottomRef} />
             </div>
           ))
         )}
-
-        {isGenerating && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-gray-800 text-white px-6 py-3 rounded-lg">
-              Generating PDF...
-            </div>
-          </div>
-        )}
+        <div ref={messagesEndRef} />
       </div>
+
+      {isGenerating && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-gray-800 text-white px-6 py-3 rounded-lg">
+            Generating PDF...
+          </div>
+        </div>
+      )}
     </>
   );
 }

@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from "react";
 import { createRun, fetchRunById } from "../utils/fetchPostRuns";
 import { RunLike, RunFile } from "../utils/types/chat";
@@ -19,7 +20,7 @@ export function useRuns(user?: { id: number; token: string }) {
     user_input: run.user_input || "",
     status: (run.status || "pending").toLowerCase(),
     final_output: run.final_output === undefined ? null : run.final_output,
-    output_artifacts: run.output_artifacts || [],
+    output_artifacts: Array.isArray(run.output_artifacts) ? run.output_artifacts : [],
     started_at: run.started_at || new Date().toISOString(),
     error: run.error,
   });

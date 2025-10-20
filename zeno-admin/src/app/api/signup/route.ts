@@ -9,8 +9,6 @@ export async function POST(request: Request) {
            { status: 400, headers: { "content-type": "application/json" } }
        );
    }
-
-
    try {
        const response = await fetch(`${baseUrl}/register/`, {
            method: "POST",

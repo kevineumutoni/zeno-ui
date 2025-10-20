@@ -1,4 +1,3 @@
-
 'use client';
 import "./globals.css";
 import { Teachers } from "next/font/google";
@@ -8,30 +7,33 @@ import ProfileMenu from "./sharedComponents/ProfileMenu";
 import useFetchAdmins from "./hooks/useFetchAdmin";
 import Background from "./sharedComponents/Background";
 
-
 const teachers = Teachers({
   subsets: ["latin"],
   weight: ["400", "700"],
   variable: "--font-teachers",
 });
 
-
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const { user } = useFetchAdmins();
   const pathname = usePathname();
 
+  const isResetPage = pathname === '/reset' || pathname.startsWith('/reset/');
+  const isAuthPage = [
+    "/",
+    "/welcome",
+    "/signin",
+    "/landing_page",
+    "/signup",
+    "/chat",
+    "/teaser",
+    "/profile",
+    "/not_found"
+  ].some(path => pathname === path);
 
-  const hideSidebarPaths = ["/", "/welcome", "/signin", "/landing_page", "/signup", "/chat", "/teaser", "/profile", "/not_found"];
-  const showSidebar = !hideSidebarPaths.includes(pathname);
-  const hideProfileMenuPaths = ["/", "/welcome", "/signin", "/landing_page", "/signup", "/chat", "/teaser", "/profile", "/not_found"];
-  const showProfileMenu = !hideProfileMenuPaths.includes(pathname);
-
+  const showSidebar = !isAuthPage && !isResetPage;
+  const showProfileMenu = !isAuthPage && !isResetPage;
 
   const profileImage = user?.image || "/images/avatar-profile.jpg";
-
-
-
-  
 
   return (
     <html lang="en">
@@ -54,4 +56,3 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     </html>
   );
 }
-

@@ -1,6 +1,6 @@
 export interface OutputArtifact {
   id?: string | number;
-  artifact_type: "text" | "chart" | "table";
+  artifact_type: "text" | "chart" | "table"| "progress";
   data: ChartData | TableData | string;
   title?: string;
 }
@@ -17,7 +17,7 @@ export type Run = {
 export type ChatMessageProps = {
   role: "user" | "agent";
   text?: string;
-  artifactType?: "text" | "chart" | "table";
+  artifactType?: "text" | "chart" | "table" | "progress";
   artifactData?: ChartData | TableData | string;
   loading?: boolean;
   runId?: string | number;
@@ -40,7 +40,7 @@ export type ChartData = {
 };
 
 export type ArtifactRendererProps = {
-  artifactType: "chart" | "table" | "text";
+  artifactType: "chart" | "table" | "text" | "progress";
   artifactData: ChartData | TableData | string;
   text?: string;
 };

@@ -1,3 +1,4 @@
+
 const API_BASE = '/api';
 
 export interface RunResponse {
@@ -36,7 +37,7 @@ export async function createRun(
     });
   }
 
-  const response = await fetch(`${API_BASE}/runs`, {
+  const response = await fetch(`${API_BASE}/runs/`, {
     method: 'POST',
     headers,
     body,
@@ -72,7 +73,7 @@ export async function fetchRunById(runId: number, token?: string): Promise<RunRe
     'Authorization': `Token ${token}`,
   };
 
-  const response = await fetch(`${API_BASE}/run?id=${runId}`, { headers });
+  const response = await fetch(`${API_BASE}/runs/${runId}/`, { headers });
 
   let data: RunResponse;
   const contentType = response.headers.get('content-type') || '';

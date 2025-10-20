@@ -14,7 +14,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const response = await fetch(`${BASE_URL}/users/${id}`, {
+    const response = await fetch(`${BASE_URL}/users/${id}/`, {
       method: "GET",
       headers: { Authorization: token, "Content-Type": "application/json" },
       cache: "no-store",
@@ -43,7 +43,7 @@ export async function PUT(request: Request) {
 
   try {
     const body = await request.text();
-    const response = await fetch(`${BASE_URL}/users/${id}`, {
+    const response = await fetch(`${BASE_URL}/users/${id}/`, {
       method: "PUT",
       headers: { Authorization: token, "Content-Type": "application/json" },
       body,

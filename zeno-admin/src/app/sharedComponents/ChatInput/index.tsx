@@ -2,8 +2,41 @@
 
 import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react';
 import Image from 'next/image';
-import { FaPaperclip, FaCamera, FaTimes, FaFilePdf, FaFileAlt } from 'react-icons/fa';
+
+import { FaPaperclip, FaCamera, FaTimes, FaFilePdf, FaFileAlt, FaFileCsv, FaFileExcel, FaFileWord } from 'react-icons/fa';
 import { ChatInputProps } from '../../utils/types/chat';
+
+
+const getFileIcon = (fileName: string, mimeType: string) => {
+  const extension = fileName.split('.').pop()?.toLowerCase() || '';
+
+  if (mimeType.startsWith('image/')) {
+    return null; 
+  } else if (extension === 'pdf' || mimeType === 'application/pdf') {
+    return <FaFilePdf size={18} className="text-red-400" />;
+  } else if (extension === 'csv' || mimeType.includes('csv')) {
+    return <FaFileCsv size={18} className="text-green-500" />;
+  } else if (['xlsx', 'xls', 'xlsm'].includes(extension) || mimeType.includes('spreadsheet')) {
+    return <FaFileExcel size={18} className="text-green-600" />;
+  } else if (['docx', 'doc'].includes(extension) || mimeType.includes('wordprocessing')) {
+    return <FaFileWord size={18} className="text-blue-500" />;
+  } else {
+
+    return <FaFileAlt size={18} className="text-blue-400" />;
+  }
+};
+
+
+const isValidFileType = (fileName: string): boolean => {
+  const extension = fileName.split('.').pop()?.toLowerCase() || '';
+  const allowedExtensions = [
+    'pdf', 'jpg', 'jpeg', 'png', 
+    'txt', 'csv', 'xlsx', 'xls', 
+    'xlsm', 'docx', 'doc'
+  ];
+  
+  return allowedExtensions.includes(extension);
+};
 
 export default function ChatInput({ conversationId, user, sendMessage, onRunCreated }: ChatInputProps) {
   const [input, setInput] = useState<string>('');
@@ -17,9 +50,11 @@ export default function ChatInput({ conversationId, user, sendMessage, onRunCrea
     };
   }, [filePreviews]);
 
+
   const renderFilePreview = (item: { file: File; previewUrl: string }, index: number) => {
     const { file, previewUrl } = item;
     const isImage = file.type.startsWith('image/');
+    const fileIcon = getFileIcon(file.name, file.type);
     return (
       <div
         key={index}
@@ -35,11 +70,7 @@ export default function ChatInput({ conversationId, user, sendMessage, onRunCrea
           />
         ) : (
           <div className="w-10 h-10 flex items-center justify-center bg-gray-700 rounded-md">
-            {file.type === 'application/pdf' ? (
-              <FaFilePdf size={18} className="text-red-400" />
-            ) : (
-              <FaFileAlt size={18} className="text-blue-400" />
-            )}
+            {fileIcon}
           </div>
         )}
         <span className="truncate max-w-[120px] font-medium">{file.name}</span>
@@ -82,7 +113,10 @@ export default function ChatInput({ conversationId, user, sendMessage, onRunCrea
       });
       if (run && onRunCreated) onRunCreated(run);
       setInput("");
+
+      filePreviews.forEach(item => URL.revokeObjectURL(item.previewUrl));
       setFilePreviews([]);
+
     } catch {
     } finally {
       setIsLoading(false);
@@ -91,18 +125,22 @@ export default function ChatInput({ conversationId, user, sendMessage, onRunCrea
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files ?? []) as File[];
+    
     const validFiles = selectedFiles.filter((file) => {
-      const isValidType = ['application/pdf', 'image/jpeg', 'image/png', 'text/plain'].includes(file.type);
+      const isValid = isValidFileType(file.name);
       const isUnderLimit = file.size <= 10 * 1024 * 1024;
-      return isValidType && isUnderLimit;
+      return isValid && isUnderLimit;
     });
+
     if (validFiles.length !== selectedFiles.length) {
-      alert('Some files are invalid. Only PDF, JPEG, PNG, or text files under 10MB are allowed.');
+      alert('Some files are invalid. Ensure files are PDF, Image, Text, CSV, Excel, or Word format and under 10MB are allowed.');
     }
+    
     const newPreviews = validFiles.map(file => ({
       file,
       previewUrl: URL.createObjectURL(file)
     }));
+    
     setFilePreviews(prev => [...prev, ...newPreviews]);
     e.target.value = '';
   };
@@ -111,11 +149,11 @@ export default function ChatInput({ conversationId, user, sendMessage, onRunCrea
     const selectedFiles = Array.from(e.target.files ?? []) as File[];
     const validFiles = selectedFiles.filter((file) => {
       const isValidType = file.type.startsWith('image/');
-      const isUnderLimit = file.size <= 2 * 1024 * 1024;
+      const isUnderLimit = file.size <= 10 * 1024 * 1024; 
       return isValidType && isUnderLimit;
     });
     if (validFiles.length !== selectedFiles.length) {
-      alert('Some images are invalid. Only JPEG or PNG files under 10MB are allowed from the camera.');
+      alert('Some images are invalid. Only image files under 10MB are allowed from the camera.');
     }
     const newPreviews = validFiles.map(file => ({
       file,
@@ -191,7 +229,8 @@ export default function ChatInput({ conversationId, user, sendMessage, onRunCrea
           multiple
           onChange={handleFileChange}
           className="hidden"
-          accept=".pdf,.jpg,.jpeg,.png,.txt"
+ 
+          accept=".pdf, image/*, .csv, .xlsx, .xls, .xlsm, .docx, .doc, .txt,.jpg,.jpeg,.png"
           disabled={isLoading}
         />
         <input

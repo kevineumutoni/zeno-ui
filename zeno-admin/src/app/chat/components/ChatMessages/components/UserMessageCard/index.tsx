@@ -1,6 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
-import { FaFilePdf, FaFileAlt } from 'react-icons/fa';
+import { FaFilePdf, FaFileAlt, FaFileExcel, FaFileWord, FaFileCsv } from 'react-icons/fa';
 import { UserMessageProps } from '../../../../../utils/types/chat';
 
 export default function UserMessage({ text, files }: UserMessageProps) {
@@ -13,38 +13,57 @@ export default function UserMessage({ text, files }: UserMessageProps) {
             {text}
           </div>
         )}
+{files && files.length > 0 && (
+  <div className="flex flex-wrap gap-2 mt-2 justify-end">
+    {files.map((item, idx) => {
+      const fileName = item.file.name.toLowerCase();
+      let IconComponent: React.ElementType = FaFileAlt;
+      let iconColor = "text-blue-500";
 
-        {files && files.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-2 justify-end">
-            {files.map((item, idx) => (
-              <div
-                key={idx}
-                className="bg-gray-100 text-gray-900 p-2 rounded-xl text-sm shadow-md flex flex-col items-center"
-              >
-                {item.file.type.startsWith("image/") ? (
-                  <Image
-                    src={item.previewUrl}
-                    alt={item.file.name}
-                    width={96}
-                    height={96}
-                    className="w-24 h-24 object-cover rounded-md"
-                  />
-                ) : (
-                  <div className="flex flex-col items-center">
-                    {item.file.type === 'application/pdf' ? (
-                      <FaFilePdf size={24} className="text-red-500 mb-1" />
-                    ) : (
-                      <FaFileAlt size={24} className="text-blue-500 mb-1" />
-                    )}
-                    <span className="text-xs max-w-[100px] text-center truncate">
-                      {item.file.name}
-                    </span>
-                  </div>
-                )}
-              </div>
-            ))}
+      if (item.file.type.startsWith("image/")) {
+        return (
+          <div key={idx} className="bg-gray-100 p-2 rounded-xl shadow-md">
+            <Image
+              src={item.previewUrl}
+              alt={item.file.name}
+              width={96}
+              height={96}
+              className="w-24 h-24 object-cover rounded-md"
+            />
           </div>
-        )}
+        );
+      }
+
+      if (fileName.endsWith(".pdf")) {
+        IconComponent = FaFilePdf;
+        iconColor = "text-red-500";
+      } else if (fileName.endsWith(".csv")) {
+        IconComponent = FaFileCsv;
+        iconColor = "text-green-600";
+      } else if (fileName.endsWith(".xlsx") || fileName.endsWith(".xls")) {
+        IconComponent = FaFileExcel;
+        iconColor = "text-green-700";
+      } else if (fileName.endsWith(".docx") || fileName.endsWith(".doc")) {
+        IconComponent = FaFileWord;
+        iconColor = "text-blue-600";
+      } else if (fileName.endsWith(".txt")) {
+        iconColor = "text-gray-700";
+      }
+
+      return (
+        <div
+          key={idx}
+          className="bg-gray-100 text-gray-900 p-2 rounded-xl text-sm shadow-md flex flex-col items-center"
+        >
+          <IconComponent size={24} className={`${iconColor} mb-1`} />
+          <span className="text-xs max-w-[100px] text-center truncate">
+            {item.file.name}
+          </span>
+        </div>
+      );
+    })}
+  </div>
+)}
       </div>
     </div>
   );

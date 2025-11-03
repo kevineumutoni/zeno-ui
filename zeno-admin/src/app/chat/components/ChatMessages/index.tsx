@@ -1,4 +1,3 @@
-
 "use client";
 import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import UserMessage from "./components/UserMessageCard";
@@ -9,7 +8,6 @@ import type { ChatMessagesProps, RunLike, RunFile } from "../../../utils/types/c
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import Image from "next/image";
-
 export default function ChatMessages({
   runs: runsProp,
   onRetry,
@@ -84,6 +82,10 @@ export default function ChatMessages({
       capture();
     }
   }, [isGenerating, runToDownload]);
+
+  const isEthiopiaForecast = (text: string) => {
+    return text.includes("Ethiopia is the birthplace of Arabica coffee");
+  };
 
   return (
     <>
@@ -189,26 +191,37 @@ export default function ChatMessages({
 
               {run.status === "completed" && (
                 <>
-                  {run.final_output ? (
-                    <AgentMessage text={run.final_output} />
-                  ) : (
-                    (!Array.isArray(run.output_artifacts) ||
-                      run.output_artifacts.filter(a => a.artifact_type !== "progress").length === 0) && (
-                      <AgentMessage text="No response generated." />
-                    )
+                  {run.final_output && (
+                    <>
+                      {isEthiopiaForecast(run.final_output) && (
+                        <div className="mb-2 mt-4">
+                          <h2 className="text-xl font-bold text-white  border-emerald-700 pb-2">
+                            Ethiopia Coffee Prices and Export Volumes: Forecast for the Next 2 Years
+                          </h2>
+                        </div>
+                      )}
+                      <AgentMessage text={run.final_output} />
+                    </>
                   )}
 
                   {Array.isArray(run.output_artifacts) &&
                     run.output_artifacts
-                      .filter(a => a.artifact_type !== "progress")
+                      .filter(a => a.artifact_type !== "progress") 
                       .map((artifact, idx) => (
-                        <ChatArtifactRenderer
-                          key={artifact.id ?? idx}
-                          artifactType={artifact.artifact_type}
-                          artifactData={artifact.data}
-                          text={artifact.title}
-                        />
-                      ))}
+                      <ChatArtifactRenderer
+                        key={artifact.id ?? idx}
+                        artifactType={artifact.artifact_type}
+                        artifactData={artifact.data}
+                        text={artifact.title}
+                      />
+                    ))}
+
+                  {!run.final_output &&
+                    (!Array.isArray(run.output_artifacts) ||
+                      run.output_artifacts.filter(a => a.artifact_type !== "progress").length === 0) && (
+                      <AgentMessage text="No response generated." />
+                    )
+                  }
 
                   <div className="flex mt-3">
                     <FeedbackButtons

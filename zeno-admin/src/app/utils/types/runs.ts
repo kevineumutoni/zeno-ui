@@ -1,10 +1,10 @@
-import { RunLike } from "./chat";
+import { RunLike , ArtifactType} from "./chat";
 
 export interface InputFile {
   id: number;
   run: number;
   file: string;
-  file_type: 'pdf' | 'image' | 'text';
+  file_type: 'pdf' | 'image' | 'text' | 'csv' | 'excel' | 'word';
   description: string | null;
 }
 
@@ -54,7 +54,7 @@ type PdfReportArtifact = {
 export type OutputArtifact = {
   id: number;
   run: number;
-  artifact_type: 'chart' | 'table' | 'text' | 'pdf_report';
+  artifact_type: ArtifactType;
   created_at: string;
   title: string | null;
 } & (ChartArtifact | TableArtifact | TextArtifact | PdfReportArtifact);

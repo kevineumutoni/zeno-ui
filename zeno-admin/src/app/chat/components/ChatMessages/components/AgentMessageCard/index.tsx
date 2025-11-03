@@ -1,7 +1,6 @@
 
 import React from 'react';
 import Image from 'next/image';
-
 interface AgentMessageProps {
   text?: string | null;
   loading?: boolean;

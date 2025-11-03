@@ -1,13 +1,10 @@
-name: Deploy Next to Vercel
+name: Deploy Next to Vercel (Production)
+
 on:
   push:
     branches:
-      - main
-      - develop
-  pull_request:
-    branches:
-      - main
-      - develop
+      - feature/reset-password
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -24,17 +21,12 @@ jobs:
         run: npm install
         working-directory: zeno-admin
 
-
-
       - name: Build React app
         run: npm run build
         working-directory: zeno-admin
 
-      - name: Deploy to Vercel
-        if: github.ref == 'refs/heads/main'
+      - name: Deploy to Vercel (Production)
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: npx vercel --prod --confirm --token $VERCEL_TOKEN
         working-directory: zeno-admin
-
-

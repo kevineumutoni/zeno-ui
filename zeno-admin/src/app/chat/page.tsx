@@ -99,6 +99,7 @@ export default function ChatPage() {
     );
   }
 
+  // ✅ REMOVED user_id from request body
   async function handleAddChat() {
     const res = await fetch("/api/conversations", {
       method: "POST",
@@ -106,7 +107,8 @@ export default function ChatPage() {
         "Content-Type": "application/json",
         Authorization: `Token ${token}`,
       },
-      body: JSON.stringify({ user_id: userId, title: "New Chat" }),
+      // ✅ Only send title (or even {} — backend defaults to "New Chat")
+      body: JSON.stringify({ title: "New Chat" }),
     });
 
     let data: Conversation | null = null;
@@ -193,13 +195,14 @@ export default function ChatPage() {
 
     try {
       if (!finalConversationId) {
+        // ✅ REMOVED user_id here too
         const createRes = await fetch("/api/conversations", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Token ${token}`,
           },
-          body: JSON.stringify({ user_id: userId, title: "New Chat" }),
+          body: JSON.stringify({ title: "New Chat" }), // ← No user_id
         });
 
         let convData: Conversation;
@@ -319,7 +322,6 @@ export default function ChatPage() {
               }
               userId={user.id}
               runLimitError={runLimitError}
-              
             />
           )}
           <div ref={messagesEndRef} />

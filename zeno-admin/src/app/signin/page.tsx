@@ -7,6 +7,9 @@ import MailOutlineIcon from '@mui/icons-material/MailOutline';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
+import * as gtag from "../../../lib/gtag";
+
+
 
 function getFriendlyErrorMessage(error: unknown) {
   if (!error) return null;
@@ -68,7 +71,13 @@ export default function LoginPage() {
       return;
     }
     const result = await login(email, password);
-    if (result && !error) {
+    if (result && !error) {gtag.event({
+        action: "user_login",
+        params: {
+          user_email: email,
+          user_role: result.role,
+        },
+      });
       setSuccess('Login successful!');
       setTimeout(() => {
         if (result.role === 'Admin') {

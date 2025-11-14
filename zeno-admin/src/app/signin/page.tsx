@@ -1,47 +1,45 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useFetchLogin } from '../hooks/useFetchLogin';
-import MailOutlineIcon from '@mui/icons-material/MailOutline';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
-import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
-import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useFetchLogin } from "../hooks/useFetchLogin";
+import MailOutlineIcon from "@mui/icons-material/MailOutline";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import VisibilityOffOutlinedIcon from "@mui/icons-material/VisibilityOffOutlined";
 import * as gtag from "../../../lib/gtag";
-
-
 
 function getFriendlyErrorMessage(error: unknown) {
   if (!error) return null;
-  if (typeof error === 'string') {
-    if (error.includes('Invalid credentials')) {
-      return 'The email or password you entered is incorrect.';
+  if (typeof error === "string") {
+    if (error.includes("Invalid credentials")) {
+      return "The email or password you entered is incorrect.";
     }
     return error;
   }
   if (
-    typeof error === 'object' &&
+    typeof error === "object" &&
     error !== null &&
-    'message' in error &&
-    typeof (error as { message?: string }).message === 'string' &&
-    (error as { message?: string }).message!.includes('Invalid credentials')
+    "message" in error &&
+    typeof (error as { message?: string }).message === "string" &&
+    (error as { message?: string }).message!.includes("Invalid credentials")
   ) {
-    return 'The email or password you entered is incorrect.';
+    return "The email or password you entered is incorrect.";
   }
   if (
-    typeof error === 'object' &&
+    typeof error === "object" &&
     error !== null &&
-    'error' in error &&
-    (error as { error?: unknown }).error === 'Invalid credentials'
+    "error" in error &&
+    (error as { error?: unknown }).error === "Invalid credentials"
   ) {
-    return 'The email or password you entered is incorrect.';
+    return "The email or password you entered is incorrect.";
   }
-  return 'An unknown error occurred. Please try again.';
+  return "An unknown error occurred. Please try again.";
 }
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
 
   const [localError, setLocalError] = useState<string | null>(null);
@@ -67,23 +65,22 @@ export default function LoginPage() {
     setSuccess(null);
 
     if (!email || !password) {
-      setLocalError('Please enter both email and password.');
+      setLocalError("Please enter both email and password.");
       return;
     }
     const result = await login(email, password);
-    if (result && !error) {gtag.event({
+    if (result && !error) {
+      gtag.event({
         action: "user_login",
-        params: {
-          user_email: email,
-          user_role: result.role,
-        },
+        category: "auth",
+        label: `${email} (${result.role})`,
       });
-      setSuccess('Login successful!');
+      setSuccess("Login successful!");
       setTimeout(() => {
-        if (result.role === 'Admin') {
-          router.push('/dashboard');
-        } else if (result.role === 'User') {
-          router.push('/chat');
+        if (result.role === "Admin") {
+          router.push("/dashboard");
+        } else if (result.role === "User") {
+          router.push("/chat");
         }
       }, 1200);
     }
@@ -103,7 +100,9 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-cover">
       <div className="2xl:w-250 xl:w-150 xl:px-10 2xl:px-30 2xl:h-190 rounded-2xl flex flex-col items-center px-30 py-14 bg-black/0 border border-gray-600 shadow-lg shadow-gray-600">
-        <h2 className="2xl:text-[50px] lg:text-[30px] xl:text-[40px] lg:mb-10 sm:text-2xl xl:mb-10 font-bold text-cyan-200 2xl:mb-28 w-full text-left">Sign In</h2>
+        <h2 className="2xl:text-[50px] lg:text-[30px] xl:text-[40px] lg:mb-10 sm:text-2xl xl:mb-10 font-bold text-cyan-200 2xl:mb-28 w-full text-left">
+          Sign In
+        </h2>
         <form onSubmit={handleSubmit} className="w-full flex flex-col gap-7">
           <div className="relative flex items-center border-b border-white/60">
             <MailOutlineIcon className="text-white mr-3 " />
@@ -119,7 +118,7 @@ export default function LoginPage() {
           <div className="relative mb-15 flex items-center border-b border-white/60">
             <LockOutlinedIcon className="text-white mr-3" />
             <input
-              type={show ? 'text' : 'password'}
+              type={show ? "text" : "password"}
               value={password}
               onChange={handlePasswordChange}
               className="bg-transparent w-full py-3 pl-0 pr-3 text-white placeholder:text-white/70 text-[20px] outline-none"
@@ -128,7 +127,7 @@ export default function LoginPage() {
             />
             <button
               type="button"
-              onClick={() => setShow(v => !v)}
+              onClick={() => setShow((v) => !v)}
               tabIndex={-1}
               aria-label={show ? "Hide password" : "Show password"}
             >
@@ -142,7 +141,7 @@ export default function LoginPage() {
           <div className="text-right w-full">
             <span
               className="text-cyan-200 text-base cursor-pointer text-[20px] hover:underline"
-              onClick={() => router.push('/reset')}
+              onClick={() => router.push("/reset")}
             >
               Forgot password?
             </span>
@@ -157,7 +156,10 @@ export default function LoginPage() {
             </button>
           </div>
           {(localError || error) && (
-            <div className="text-red-400 text-center text-base mt-2 " data-testid="error-message">
+            <div
+              className="text-red-400 text-center text-base mt-2 "
+              data-testid="error-message"
+            >
               {localError || getFriendlyErrorMessage(error)}
             </div>
           )}
@@ -169,10 +171,10 @@ export default function LoginPage() {
         </form>
         <div className="xl:mt-10 lg:mt-2">
           <span className="text-white xl:text-xl lg:text-md">
-            Do not have an account?{' '}
+            Do not have an account?{" "}
             <span
               className="text-[#9FF8F8] cursor-pointer"
-              onClick={() => router.push('/signup')}
+              onClick={() => router.push("/signup")}
             >
               Sign Up
             </span>

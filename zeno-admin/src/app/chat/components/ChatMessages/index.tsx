@@ -8,6 +8,7 @@ import type { ChatMessagesProps, RunLike, RunFile } from "../../../utils/types/c
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import Image from "next/image";
+
 export default function ChatMessages({
   runs: runsProp,
   onRetry,
@@ -19,6 +20,10 @@ export default function ChatMessages({
   const singlePrintRef = useRef<HTMLDivElement | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [runToDownload, setRunToDownload] = useState<RunLike | null>(null);
+
+  // Mark props as intentionally used to avoid ESLint no-unused-vars warnings
+  void onRetry;
+  void runLimitError;
 
   const runs = useMemo(() => Array.isArray(runsProp) ? runsProp : [], [runsProp]);
 
@@ -83,8 +88,28 @@ export default function ChatMessages({
     }
   }, [isGenerating, runToDownload]);
 
-  const isEthiopiaForecast = (text: string) => {
+  // === DETECTION LOGIC ===
+  const isEthiopiaForecast = (text: string): boolean => {
     return text.includes("Ethiopia is the birthplace of Arabica coffee");
+  };
+
+  const isKenyaCoffeeForecast = (text: string): boolean => {
+    const patterns = [
+      /Kenya.*high-altitude.*specialty-grade/,
+      /Nairobi Coffee Exchange/,
+      /December 2025.*January 2026/,
+      /US\$395 per 50 kg/,
+    ];
+    return patterns.some(p => p.test(text));
+  };
+
+  const getForecastHeader = (text: string): string | null => {
+    if (isEthiopiaForecast(text)) {
+      return "Ethiopia Coffee Prices and Export Volumes";
+    } else if (isKenyaCoffeeForecast(text)) {
+      return "Kenya Coffee Price Forecast: ";
+    }
+    return null;
   };
 
   return (
@@ -154,7 +179,7 @@ export default function ChatMessages({
 
       <div
         ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto p-6 space-y-6 w-full xl:max-w-5xl lg:max-w-2xl md:max-w-xl mx-auto scrollbar-hide "
+        className="flex-1 overflow-y-auto p-6 space-y-6 w-full xl:max-w-5xl lg:max-w-2xl md:max-w-xl mx-auto scrollbar-hide"
       >
         {runs.length === 0 ? (
           <div className="text-center text-gray-400 py-10">No messages yet.</div>
@@ -193,10 +218,11 @@ export default function ChatMessages({
                 <>
                   {run.final_output && (
                     <>
-                      {isEthiopiaForecast(run.final_output) && (
+                      {/* Show custom header if it's Ethiopia or Kenya forecast */}
+                      {getForecastHeader(run.final_output) && (
                         <div className="mb-2 mt-4">
-                          <h2 className="text-xl font-bold text-white  border-emerald-700 pb-2">
-                            Ethiopia Coffee Prices and Export Volumes: Forecast for the Next 2 Years
+                          <h2 className="text-xl font-bold text-white border-emerald-700 pb-2">
+                            {getForecastHeader(run.final_output)}
                           </h2>
                         </div>
                       )}
@@ -206,22 +232,21 @@ export default function ChatMessages({
 
                   {Array.isArray(run.output_artifacts) &&
                     run.output_artifacts
-                      .filter(a => a.artifact_type !== "progress") 
+                      .filter(a => a.artifact_type !== "progress")
                       .map((artifact, idx) => (
-                      <ChatArtifactRenderer
-                        key={artifact.id ?? idx}
-                        artifactType={artifact.artifact_type}
-                        artifactData={artifact.data}
-                        text={artifact.title}
-                      />
-                    ))}
+                        <ChatArtifactRenderer
+                          key={artifact.id ?? idx}
+                          artifactType={artifact.artifact_type}
+                          artifactData={artifact.data}
+                          text={artifact.title}
+                        />
+                      ))}
 
                   {!run.final_output &&
                     (!Array.isArray(run.output_artifacts) ||
                       run.output_artifacts.filter(a => a.artifact_type !== "progress").length === 0) && (
                       <AgentMessage text="No response generated." />
-                    )
-                  }
+                    )}
 
                   <div className="flex mt-3">
                     <FeedbackButtons
@@ -235,21 +260,8 @@ export default function ChatMessages({
               )}
 
               {run.status === "failed" && (
-                <div className="flex items-center gap-2 ml-10">
-                  <span className="text-red-500">Failed to send</span>
-                  {!runLimitError && onRetry && (
-                    <button
-                      onClick={() => onRetry(run)}
-                      className="text-blue-400 underline"
-                    >
-                      Retry
-                    </button>
-                  )}
-                  {runLimitError && (
-                    <span className="text-white ml-2">
-                      Run limit reached. Retry unavailable.
-                    </span>
-                  )}
+                <div className="ml-10">
+                  <AgentMessage text="No response found. Please try rephrasing your question or check back later." />
                 </div>
               )}
             </div>

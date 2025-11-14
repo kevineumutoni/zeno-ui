@@ -1,4 +1,5 @@
 'use client';
+
 import "./globals.css";
 import { Teachers } from "next/font/google";
 import { usePathname } from "next/navigation";
@@ -6,6 +7,10 @@ import SidebarNav from "./sharedComponents/Navigation";
 import ProfileMenu from "./sharedComponents/ProfileMenu";
 import useFetchAdmins from "./hooks/useFetchAdmin";
 import Background from "./sharedComponents/Background";
+import { useEffect } from "react";
+import Script from "next/script";
+import * as gtag from "../../lib/gtag";
+
 
 const teachers = Teachers({
   subsets: ["latin"],
@@ -35,8 +40,28 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   const profileImage = user?.image || "/images/avatar-profile.jpg";
 
+  useEffect(() => {
+    gtag.pageview(pathname);
+  }, [pathname]);
+
   return (
     <html lang="en">
+      <head>
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="ga4-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID}', {
+              page_path: window.location.pathname,
+            });
+          `}
+        </Script>
+      </head>
       <body className={`${teachers.variable} antialiased`}>
         <div className="absolute inset-0 -z-10 opacity-20 pointer-events-none">
           <Background />
